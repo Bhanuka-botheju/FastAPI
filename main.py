@@ -2,6 +2,7 @@ from symtable import Class
 from typing import Optional
 from fastapi import FastAPI
 from pydantic import BaseModel
+import uvicorn
 
 app = FastAPI()
 
@@ -40,4 +41,7 @@ async def create_blog(request : Blog):
 
 
 
+# if __name__ == '__main__':
+#     uvicorn.run(app,host='127.0.0.1',port = '9000')
+ 
 
