@@ -33,6 +33,16 @@ async def delete_blog_by_id(id , db:Session = Depends(get_db)):
     db.commit()
     return {"detail": f"Blog with id {id} deleted successfully"}
 
+@app.put('/blog/{id}' , status_code=status.HTTP_202_ACCEPTED)
+async def update_by_id(id,request:schemas.Blog , db:Session = Depends(get_db)):
+    blog_by_id = db.query(models.Blog).filter(models.Blog.id == id).first()
+    if not blog_by_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Blog with id {id} not found")
+    blog_by_id.title = "updated title"
+    blog_by_id.body = "updated body"
+    db.commit()
+    db.refresh(blog_by_id)
+    return blog_by_id
 
 @app.get('/blog')
 async def get_blogs_all(db:Session = Depends(get_db)):
