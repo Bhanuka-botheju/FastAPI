@@ -80,3 +80,19 @@ async def get_all_users(db:Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No users found")
     return all_users
 
+@app.get('/user/{id}',status_code=200)
+async def get_user_by_id(id : int,db:Session = Depends(get_db)):
+    user_by_id = db.query(models.User).filter(models.User.id == id).first()
+    if not user_by_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id {id} not found")
+    return user_by_id
+
+@app.delete('/user/{id}',status_code = status.HTTP_204_NO_CONTENT)
+async def delete_user_by_id(id,db:Session = Depends(get_db)):
+    user_by_id = db.query(models.User).filter(models.User.id == id).first()
+    if not user_by_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id {id} not found")
+    db.delete(user_by_id)
+    db.commit()
+    return {"details": f"User with id {id} deleted successfully"}
+
