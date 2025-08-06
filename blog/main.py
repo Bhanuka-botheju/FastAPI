@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import FastAPI,Depends,status, Response ,HTTPException
 from . import schemas
 from . import models
@@ -44,16 +45,28 @@ async def update_by_id(id,request:schemas.Blog , db:Session = Depends(get_db)):
     db.refresh(blog_by_id)
     return blog_by_id
 
-@app.get('/blog')
+@app.get('/blog',status_code = 200 , response_model=List[schemas.ShowBlog])
 async def get_blogs_all(db:Session = Depends(get_db)):
     all_blogs = db.query(models.Blog).all()
     return all_blogs
 
-@app.get('/blog/{id}')
-async def get_blog_by_id(id, response:Response, db:Session = Depends(get_db),status_code=200):
+@app.get('/blog/{id}', status_code=status.HTTP_200_OK,response_model = schemas.ShowBlog )
+async def get_blog_by_id(id: int, db: Session = Depends(get_db)):
     blog_by_id = db.query(models.Blog).filter(models.Blog.id == id).first()
     if not blog_by_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Blog with id {id} not found")
-        # response.status_code = status.HTTP_404_NOT_FOUND
-        # return {"detail": f"Blog with id {id} not found"}
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Blog with id {id} not found"
+        )
     return blog_by_id
+
+@app.post('/user',status_code = 200 )
+async def create_user(request:schemas.User , db:Session = Depends(get_db)):
+    exist_user = db.query(models.User).filter(models.User.email == request.email).first()
+    if exist_user:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User with this email already exists log in...")
+    new_user = models.User(name = request.name , email=request.email , password=request.password)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user

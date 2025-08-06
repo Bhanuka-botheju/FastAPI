@@ -2,4 +2,15 @@ from pydantic import BaseModel
 
 class Blog(BaseModel):
     title: str
-    content: str
+    body: str
+
+class ShowBlog(BaseModel):
+    title: str
+
+    class Config:
+        orm_model =True
+
+class User(BaseModel):
+    name: str
+    email: str
+    password: str
