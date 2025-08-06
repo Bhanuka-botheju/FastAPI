@@ -4,6 +4,7 @@ from . import schemas
 from . import models
 from . database import engine , SessionLocal
 from sqlalchemy.orm import Session
+from . import hashing
 
 app = FastAPI()
 
@@ -65,8 +66,17 @@ async def create_user(request:schemas.User , db:Session = Depends(get_db)):
     exist_user = db.query(models.User).filter(models.User.email == request.email).first()
     if exist_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User with this email already exists log in...")
-    new_user = models.User(name = request.name , email=request.email , password=request.password)
+    hashedpassword = hashing.Hash.bcrypt(request.password)
+    new_user = models.User(name = request.name , email=request.email , password=hashedpassword)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
     return new_user
+
+@app.get('/user',status_code = 200 , response_model = List[schemas.ShowUser])
+async def get_all_users(db:Session = Depends(get_db)):
+    all_users = db.query(models.User).all()
+    if not all_users:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No users found")
+    return all_users
+
